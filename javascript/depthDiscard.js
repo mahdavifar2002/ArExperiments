@@ -69,7 +69,8 @@ let scene, uniforms, renderer, camera, gl, shaderMaterial;
 function AR(){
 	var currentSession = null;
 	function onSessionStarted( session ) {
-
+		// Create another XRReferenceSpace that has the viewer as the origin.
+	        const viewerSpace = await session.requestReferenceSpace('viewer');	
 		// Perform hit testing using the viewer as origin.
 		const hitTestSource = session.requestHitTestSource({ space: viewerSpace });
 	
