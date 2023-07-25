@@ -67,6 +67,34 @@ let scene, uniforms, renderer, camera, gl, shaderMaterial;
 
 
 function AR(){
+	
+	// Perform hit testing using the viewer as origin.
+	const hitTestSource = await session.requestHitTestSource({ space: viewerSpace });
+
+
+	const loader = new THREE.GLTFLoader();
+	let reticle;
+	loader.load("https://immersive-web.github.io/webxr-samples/media/gltf/reticle/reticle.gltf", function(gltf) {
+		  reticle = gltf.scene;
+		  reticle.visible = false;
+		  scene.add(reticle);
+	})
+
+	let flower;
+	loader.load("https://immersive-web.github.io/webxr-samples/media/gltf/sunflower/sunflower.gltf", function(gltf) {
+	// loader.load("../models/farsh.gltf", function(gltf) {
+		  flower = gltf.scene;
+	});
+
+	session.addEventListener("select", (event) => {
+		  if (flower) {
+				  const clone = flower.clone();
+				  clone.position.copy(reticle.position);
+				  scene.add(clone);
+				}
+	});
+	
+	
 	var currentSession = null;
 	function onSessionStarted( session ) {
 		session.addEventListener( 'end', onSessionEnded );
@@ -102,7 +130,7 @@ function AR(){
 	if ( currentSession === null ) {
 
         let options = {
-          requiredFeatures: ['depth-sensing', 'dom-overlay'],
+          requiredFeatures: ['depth-sensing', 'dom-overlay', 'hit-test'],
           domOverlay: { root: document.body },
 		  depthSensing: {
 		    usagePreference: ["cpu-optimized", "gpu-optimized"],
@@ -139,6 +167,16 @@ function onXRFrame(t, frame) {
     const pose = frame.getViewerPose(xrRefSpace);
 	render()
 	if (pose) {
+		
+		const hitTestResults = frame.getHitTestResults(hitTestSource);
+		if (hitTestResults.length > 0 && reticle) {
+			const hitPose = hitTestResults[0].getPose(referenceSpace);
+			reticle.visible = true;
+			reticle.position.set(hitPose.transform.position.x, hitPose.transform.position.y, hitPose.transform.position.z)
+			reticle.updateMatrixWorld(true);
+		}
+		
+		
 		for (const view of pose.views) {
             const viewport = baseLayer.getViewport(view);
             gl.viewport(viewport.x, viewport.y,
