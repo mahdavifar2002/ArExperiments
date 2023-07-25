@@ -70,7 +70,7 @@ function AR(){
 	var currentSession = null;
 	function onSessionStarted( session ) {
 		// Create another XRReferenceSpace that has the viewer as the origin.
-	        const viewerSpace = await session.requestReferenceSpace('viewer');	
+	        const viewerSpace = session.requestReferenceSpace('viewer');	
 		// Perform hit testing using the viewer as origin.
 		const hitTestSource = session.requestHitTestSource({ space: viewerSpace });
 	
